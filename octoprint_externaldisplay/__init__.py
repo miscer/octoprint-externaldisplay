@@ -11,9 +11,11 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 
-class ExternaldisplayPlugin(octoprint.plugin.SettingsPlugin,
+class ExternaldisplayPlugin(
+    octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
-    octoprint.plugin.TemplatePlugin
+    octoprint.plugin.TemplatePlugin,
+    octoprint.plugin.BlueprintPlugin,
 ):
 
     ##~~ SettingsPlugin mixin
@@ -33,6 +35,18 @@ class ExternaldisplayPlugin(octoprint.plugin.SettingsPlugin,
             "css": ["css/externaldisplay.css"],
             "less": ["less/externaldisplay.less"]
         }
+
+    ##~~ BlueprintPlugin mixin
+
+    def is_blueprint_csrf_protected(self):
+        return True
+    
+    def is_blueprint_protected(self):
+        return False
+    
+    @octoprint.plugin.BlueprintPlugin.route("/frame", methods=["GET"])
+    def api_frame(self):
+        return "Hello from API!"
 
     ##~~ Softwareupdate hook
 
