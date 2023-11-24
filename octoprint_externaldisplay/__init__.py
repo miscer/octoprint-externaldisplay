@@ -12,6 +12,31 @@ class ExternaldisplayPlugin(
     octoprint.plugin.BlueprintPlugin,
 ):
 
+    def get_frame_data(self):
+        temperatures = self._printer.get_current_temperatures()
+        current_data = self._printer.get_current_data()
+
+        bed_temp, extruder_temp = None, None
+
+        if "bed" in temperatures:
+            bed_temp = frame.Temperature(
+                current=temperatures["bed"]["actual"],
+                target=temperatures["bed"]["target"]
+            )
+        if "tool0" in temperatures:
+            extruder_temp = frame.Temperature(
+                current=temperatures["tool0"]["actual"],
+                target=temperatures["tool0"]["target"]
+            )
+
+        return frame.FrameData(
+            bed=bed_temp,
+            extruder=extruder_temp,
+            progress=current_data["progress"]["completion"],
+            time_elapsed=current_data["progress"]["printTime"],
+            time_remaining=current_data["progress"]["printTimeLeft"],
+        )
+
     ##~~ SettingsPlugin mixin
 
     def get_settings_defaults(self):
@@ -41,7 +66,8 @@ class ExternaldisplayPlugin(
     @octoprint.plugin.BlueprintPlugin.route("/frame", methods=["GET"])
     def api_frame(self):
         # Generate the image
-        image = frame.generate_frame()
+        data = self.get_frame_data()
+        image = frame.generate_frame(data)
 
         # Save the image to a BytesIO object
         image_io = io.BytesIO()
@@ -50,6 +76,10 @@ class ExternaldisplayPlugin(
 
         # Return the image in the response
         return flask.send_file(image_io, mimetype='image/png')
+
+    @octoprint.plugin.BlueprintPlugin.route("/info", methods=["GET"])
+    def api_info(self):
+        return flask.jsonify(self.get_frame_data()._asdict())
 
     ##~~ Softwareupdate hook
 
