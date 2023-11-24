@@ -5,14 +5,28 @@
  * License: AGPLv3
  */
 $(function() {
-    function ExternaldisplayViewModel(parameters) {
-        var self = this;
+    class ExternalDisplayViewModel {
+        constructor() {
+            this.imageUrl = ko.observable(getFrameImageHref());
+            this.updateInterval = null;
+        }
 
-        // assign the injected parameters, e.g.:
-        // self.loginStateViewModel = parameters[0];
-        // self.settingsViewModel = parameters[1];
+        updateImageUrl() {
+            this.imageUrl(getFrameImageHref());
+        }
 
-        // TODO: Implement your plugin's view model here.
+        onTabChange(current, previous) {
+            if (current === "#tab_plugin_externaldisplay") {
+                this.updateInterval = setInterval(() => this.updateImageUrl(), 1000);
+            } else if (this.updateInterval != null) {
+                clearInterval(this.updateInterval);
+                this.updateInterval = null;
+            }
+        }
+    }
+
+    function getFrameImageHref() {
+        return EXTERNAL_DISPLAY.api.frame + "?t=" + new Date().getTime();
     }
 
     /* view model class, parameters for constructor, container to bind to
@@ -20,10 +34,8 @@ $(function() {
      * and a full list of the available options.
      */
     OCTOPRINT_VIEWMODELS.push({
-        construct: ExternaldisplayViewModel,
-        // ViewModels your plugin depends on, e.g. loginStateViewModel, settingsViewModel, ...
-        dependencies: [ /* "loginStateViewModel", "settingsViewModel" */ ],
-        // Elements to bind to, e.g. #settings_plugin_externaldisplay, #tab_plugin_externaldisplay, ...
-        elements: [ /* ... */ ]
+        construct: ExternalDisplayViewModel,
+        elements: ["#tab_plugin_externaldisplay"],
+        dependencies: [],
     });
 });
