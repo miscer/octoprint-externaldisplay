@@ -99,17 +99,17 @@ class ExternaldisplayPlugin(
         # for details.
         return {
             "externaldisplay": {
-                "displayName": "Externaldisplay Plugin",
+                "displayName": "External Display",
                 "displayVersion": self._plugin_version,
 
                 # version check: github repository
                 "type": "github_release",
                 "user": "miscer",
-                "repo": "OctoPrint-ExternalDisplay",
+                "repo": "octoprint-externaldisplay",
                 "current": self._plugin_version,
 
                 # update method: pip
-                "pip": "https://github.com/miscer/OctoPrint-ExternalDisplay/archive/{target_version}.zip",
+                "pip": "https://github.com/miscer/octoprint-externaldisplay/archive/{target_version}.zip",
             }
         }
 
@@ -117,7 +117,7 @@ class ExternaldisplayPlugin(
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
 # ("OctoPrint-PluginSkeleton"), you may define that here. Same goes for the other metadata derived from setup.py that
 # can be overwritten via __plugin_xyz__ control properties. See the documentation for that.
-__plugin_name__ = "Externaldisplay Plugin"
+__plugin_name__ = "External Display"
 
 
 # Set the Python version your plugin is compatible with below. Recommended is Python 3 only for all new plugins.
