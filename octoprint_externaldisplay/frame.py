@@ -1,6 +1,6 @@
 from collections import namedtuple
-from PIL import Image, ImageDraw, ImageFont
-from pkg_resources import resource_stream
+from PIL import Image, ImageDraw 
+from octoprint_externaldisplay.fonts import get_font
 
 Temperature = namedtuple("Temperature", ["current", "target"])
 
@@ -12,14 +12,6 @@ FrameData = namedtuple("FrameData", [
     "time_remaining",
 ])
 
-iosevka_regular = ImageFont.truetype(resource_stream(__name__, "static/fonts/iosevka-regular.ttf"))
-
-def generate_frame(data: FrameData):
-    frame = Frame(data)
-    frame.draw()
-
-    return frame.image
-
 class Frame:
     def __init__(self, size: tuple[int, int]):
         self.scale = 4
@@ -28,7 +20,6 @@ class Frame:
 
         self.image = Image.new("RGB", (width * self.scale, height * self.scale), "black")
         self.canvas = ImageDraw.Draw(self.image)
-        self.canvas.font = iosevka_regular
 
     def draw(self, data: FrameData):
         self.clear()
@@ -51,7 +42,7 @@ class Frame:
 
     def draw_temperature(self, temperature: Temperature, position: tuple[int, int], anchor: str):
         text = f"{temperature.current:.0f}°C"
-        font_size = 16 * self.scale
+        font = get_font("iosevka_bold", 16 * self.scale)
 
         if temperature.target == 0:
             color = "gray"
@@ -62,7 +53,7 @@ class Frame:
         else:
             color = "white"
 
-        self.canvas.text(position, text, fill=color, font_size=font_size, anchor=anchor)
+        self.canvas.text(position, text, fill=color, font=font, anchor=anchor)
 
     def draw_progress(self, data: FrameData):
         bottom_offset = 16 * self.scale
@@ -82,14 +73,14 @@ class Frame:
     def draw_time(self, data: FrameData):
         bottom_offset = 16 * self.scale
         position = (self.image.width / 2, (self.image.height - bottom_offset) / 2)
-        font_size = 24 * self.scale
+        font = get_font("iosevka_regular", 24 * self.scale)
 
         if data.time_remaining:
             text = self.format_time(data.time_remaining)
-            self.canvas.text(position, text, fill="white", font_size=font_size, anchor="mm")
+            self.canvas.text(position, text, fill="white", font=font, anchor="mm")
         elif data.time_elapsed:
             text = self.format_time(data.time_elapsed)
-            self.canvas.text(position, text, fill="gray", font_size=font_size, anchor="mm")
+            self.canvas.text(position, text, fill="gray", font=font, anchor="mm")
     
     def format_time(self, seconds: int):
         minutes, seconds = divmod(seconds, 60)
