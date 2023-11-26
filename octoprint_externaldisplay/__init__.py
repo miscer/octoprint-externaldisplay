@@ -49,8 +49,13 @@ class ExternaldisplayPlugin(
     ##~~ StartupPlugin mixin
     
     def on_after_startup(self):
-        self.canvas = frame.Frame((129, 130))
         self.framebuffer = Framebuffer("/dev/fb1")
+
+        self._logger.info(f"Framebuffer size: {self.framebuffer.get_size()}")
+        self._logger.info(f"Framebuffer color depth: {self.framebuffer.get_color_depth()}")
+
+        self.canvas = frame.Frame(self.framebuffer.get_size())
+
         self.render_loop = RenderLoop(self)
         self.render_loop.start()
     
