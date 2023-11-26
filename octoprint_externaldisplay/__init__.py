@@ -2,6 +2,8 @@
 from __future__ import absolute_import
 import octoprint.plugin
 import octoprint_externaldisplay.frame as frame
+from octoprint_externaldisplay.framebuffer import Framebuffer
+from octoprint_externaldisplay.loop import RenderLoop
 import flask
 import io
 
@@ -10,9 +12,10 @@ class ExternaldisplayPlugin(
     octoprint.plugin.AssetPlugin,
     octoprint.plugin.TemplatePlugin,
     octoprint.plugin.BlueprintPlugin,
-    octoprint.plugin.StartupPlugin
+    octoprint.plugin.StartupPlugin,
+    octoprint.plugin.ShutdownPlugin,
 ):
-    frame = None
+    canvas = None
 
     def get_frame_data(self):
         temperatures = self._printer.get_current_temperatures()
@@ -38,11 +41,24 @@ class ExternaldisplayPlugin(
             time_elapsed=current_data["progress"]["printTime"],
             time_remaining=current_data["progress"]["printTimeLeft"],
         )
+
+    def draw_frame(self):
+        data = self.get_frame_data()
+        self.canvas.draw(data)
     
     ##~~ StartupPlugin mixin
     
     def on_after_startup(self):
-        self.frame = frame.Frame((128, 128))
+        self.canvas = frame.Frame((129, 130))
+        self.framebuffer = Framebuffer("/dev/fb1")
+        self.render_loop = RenderLoop(self)
+        self.render_loop.start()
+    
+    ##~~ ShutdownPlugin mixin
+
+    def on_shutdown(self):
+        self.render_loop.stop()
+        self.framebuffer.close()
 
     ##~~ SettingsPlugin mixin
 
@@ -72,16 +88,12 @@ class ExternaldisplayPlugin(
     
     @octoprint.plugin.BlueprintPlugin.route("/frame", methods=["GET"])
     def api_frame(self):
-        if not self.frame:
+        if not self.canvas:
             return flask.abort(503)
-
-        # Generate the image
-        data = self.get_frame_data()
-        image = self.frame.draw(data)
 
         # Save the image to a BytesIO object
         image_io = io.BytesIO()
-        image.save(image_io, format='PNG')
+        self.canvas.get_image().save(image_io, format='PNG')
         image_io.seek(0)
 
         # Return the image in the response

@@ -27,6 +27,7 @@ class Frame:
         self.draw_progress(data)
         self.draw_time(data)
 
+    def get_image(self):
         return self.image.resize(self.size, Image.LANCZOS)
 
     def clear(self):
