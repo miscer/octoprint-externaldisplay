@@ -58,14 +58,15 @@ class ExternaldisplayPlugin(
         self.render_loop.start()
 
     def create_framebuffer(self):
+        active = self._settings.get_boolean(["enable_framebuffer"])
         path = self._settings.get(["framebuffer_path"])
 
-        if path:
+        if active and path:
             self.framebuffer = Framebuffer(path)
             self._logger.info(f"Framebuffer size: {self.framebuffer.get_size()}")
             self._logger.info(f"Framebuffer color depth: {self.framebuffer.get_color_depth()}")
         else:
-            self._logger.info("Framebuffer path not set")
+            self._logger.info("Framebuffer not active")
 
     def create_canvas(self):
         size = (128, 128)
@@ -87,6 +88,7 @@ class ExternaldisplayPlugin(
 
     def get_settings_defaults(self):
         return {
+            "enable_framebuffer": False,
             "framebuffer_path": "",
         }
 

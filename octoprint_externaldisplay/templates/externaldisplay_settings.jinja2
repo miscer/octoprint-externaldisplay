@@ -1,0 +1,24 @@
+<h3>External Display</h3>
+<form class="form-horizontal">
+    <div class="control-group">
+        <div class="controls">
+            <label class="checkbox">
+                <input type="checkbox"
+                       data-bind="checked: settings.plugins.externaldisplay.enable_framebuffer">
+                Enable rendering to framebuffer
+            </label>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">{{ _('Framebuffer path') }}</label>
+        <div class="controls">
+            <input type="text" class="input-medium"
+                   data-bind="value: settings.plugins.externaldisplay.framebuffer_path">
+            <div class="help-block">
+                <p>
+                    Path of the Linux framebuffer that the display uses, for example <code>/dev/fb1</code>.
+                </p>
+            </div>
+        </div>
+    </div>
+</form>
