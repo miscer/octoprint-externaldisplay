@@ -1,9 +1,10 @@
 # coding=utf-8
 from __future__ import absolute_import
 import octoprint.plugin
-import octoprint_externaldisplay.frame as frame
+from octoprint_externaldisplay import canvas
 from octoprint_externaldisplay.framebuffer import Framebuffer
 from octoprint_externaldisplay.loop import RenderLoop
+from octoprint_externaldisplay.views import print
 import flask
 import io
 
@@ -17,26 +18,27 @@ class ExternaldisplayPlugin(
     octoprint.plugin.ShutdownPlugin,
 ):
     canvas = None
+    view = None
     framebuffer = None
 
-    def get_frame_data(self):
+    def get_view_data(self):
         temperatures = self._printer.get_current_temperatures()
         current_data = self._printer.get_current_data()
 
         bed_temp, extruder_temp = None, None
 
         if "bed" in temperatures:
-            bed_temp = frame.Temperature(
+            bed_temp = print.Temperature(
                 current=temperatures["bed"]["actual"],
                 target=temperatures["bed"]["target"]
             )
         if "tool0" in temperatures:
-            extruder_temp = frame.Temperature(
+            extruder_temp = print.Temperature(
                 current=temperatures["tool0"]["actual"],
                 target=temperatures["tool0"]["target"]
             )
 
-        return frame.FrameData(
+        return print.PrintViewData(
             bed=bed_temp,
             extruder=extruder_temp,
             progress=current_data["progress"]["completion"],
@@ -45,14 +47,16 @@ class ExternaldisplayPlugin(
         )
 
     def draw_frame(self):
-        data = self.get_frame_data()
-        self.canvas.draw(data)
+        data = self.get_view_data()
+        self.view.draw(data)
 
     ##~~ StartupPlugin mixin
 
     def on_after_startup(self):
         self.create_framebuffer()
         self.create_canvas()
+
+        self.view = print.PrintView(self.canvas)
 
         self.render_loop = RenderLoop(self)
         self.render_loop.start()
@@ -74,7 +78,7 @@ class ExternaldisplayPlugin(
         if self.framebuffer:
             size = self.framebuffer.get_size()
 
-        self.canvas = frame.Frame(size)
+        self.canvas = canvas.Canvas(size)
 
     ##~~ ShutdownPlugin mixin
 
@@ -126,7 +130,7 @@ class ExternaldisplayPlugin(
 
     @octoprint.plugin.BlueprintPlugin.route("/info", methods=["GET"])
     def api_info(self):
-        return flask.jsonify(self.get_frame_data()._asdict())
+        return flask.jsonify(self.get_view_data()._asdict())
 
     ##~~ Softwareupdate hook
 
