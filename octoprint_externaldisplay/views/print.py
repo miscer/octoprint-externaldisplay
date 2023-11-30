@@ -62,8 +62,8 @@ class PrintView:
         self.canvas.draw.arc(bounding_box, 0, 360, fill="gray", width=line_width)
 
         if data.progress:
-            angle = data.progress / 100 * 360
-            self.canvas.draw.arc(bounding_box, 0, angle, fill="white", width=line_width)
+            angle = (270 + data.progress / 100 * 360) % 360
+            self.canvas.draw.arc(bounding_box, 270, angle, fill="white", width=line_width)
 
     def draw_time(self, data: PrintViewData):
         bottom_offset = 16 * self.canvas.scale
