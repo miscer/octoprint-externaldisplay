@@ -2,6 +2,8 @@ import threading
 
 
 class RenderLoop(threading.Thread):
+    daemon = True
+
     def __init__(self, plugin, refresh_interval=1):
         super().__init__()
 
@@ -16,4 +18,3 @@ class RenderLoop(threading.Thread):
 
     def stop(self):
         self.stop_event.set()
-        self.join()
