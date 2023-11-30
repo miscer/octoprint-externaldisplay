@@ -11,15 +11,8 @@ class RenderLoop(threading.Thread):
 
     def run(self):
         while not self.stop_event.is_set():
-            self.render()
+            self.plugin.draw_frame()
             self.stop_event.wait(self.refresh_interval)
-
-    def render(self):
-        self.plugin.draw_frame()
-
-        if self.plugin.framebuffer:
-            image = self.plugin.canvas.get_image()
-            self.plugin.framebuffer.write(image)
 
     def stop(self):
         self.stop_event.set()

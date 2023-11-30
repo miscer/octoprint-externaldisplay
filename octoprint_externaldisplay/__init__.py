@@ -4,7 +4,7 @@ import octoprint.plugin
 from octoprint_externaldisplay import canvas
 from octoprint_externaldisplay.framebuffer import Framebuffer
 from octoprint_externaldisplay.loop import RenderLoop
-from octoprint_externaldisplay.views import print
+from octoprint_externaldisplay.controllers import print
 import flask
 import io
 
@@ -18,37 +18,15 @@ class ExternaldisplayPlugin(
     octoprint.plugin.ShutdownPlugin,
 ):
     canvas = None
-    view = None
+    controller = None
     framebuffer = None
 
-    def get_view_data(self):
-        temperatures = self._printer.get_current_temperatures()
-        current_data = self._printer.get_current_data()
-
-        bed_temp, extruder_temp = None, None
-
-        if "bed" in temperatures:
-            bed_temp = print.Temperature(
-                current=temperatures["bed"]["actual"],
-                target=temperatures["bed"]["target"]
-            )
-        if "tool0" in temperatures:
-            extruder_temp = print.Temperature(
-                current=temperatures["tool0"]["actual"],
-                target=temperatures["tool0"]["target"]
-            )
-
-        return print.PrintViewData(
-            bed=bed_temp,
-            extruder=extruder_temp,
-            progress=current_data["progress"]["completion"],
-            time_elapsed=current_data["progress"]["printTime"],
-            time_remaining=current_data["progress"]["printTimeLeft"],
-        )
-
     def draw_frame(self):
-        data = self.get_view_data()
-        self.view.draw(data)
+        self.controller.draw()
+
+        if self.framebuffer:
+            image = self.canvas.get_image()
+            self.framebuffer.write(image)
 
     ##~~ StartupPlugin mixin
 
@@ -56,7 +34,7 @@ class ExternaldisplayPlugin(
         self.create_framebuffer()
         self.create_canvas()
 
-        self.view = print.PrintView(self.canvas)
+        self.controller = print.PrintController(self._printer, self.canvas)
 
         self.render_loop = RenderLoop(self)
         self.render_loop.start()
@@ -127,10 +105,6 @@ class ExternaldisplayPlugin(
 
         # Return the image in the response
         return flask.send_file(image_io, mimetype='image/png')
-
-    @octoprint.plugin.BlueprintPlugin.route("/info", methods=["GET"])
-    def api_info(self):
-        return flask.jsonify(self.get_view_data()._asdict())
 
     ##~~ Softwareupdate hook
 
