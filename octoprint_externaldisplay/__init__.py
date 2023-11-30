@@ -7,6 +7,7 @@ from octoprint_externaldisplay.loop import RenderLoop
 import flask
 import io
 
+
 class ExternaldisplayPlugin(
     octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
@@ -16,6 +17,7 @@ class ExternaldisplayPlugin(
     octoprint.plugin.ShutdownPlugin,
 ):
     canvas = None
+    framebuffer = None
 
     def get_frame_data(self):
         temperatures = self._printer.get_current_temperatures()
@@ -45,31 +47,47 @@ class ExternaldisplayPlugin(
     def draw_frame(self):
         data = self.get_frame_data()
         self.canvas.draw(data)
-    
+
     ##~~ StartupPlugin mixin
-    
+
     def on_after_startup(self):
-        self.framebuffer = Framebuffer("/dev/fb1")
-
-        self._logger.info(f"Framebuffer size: {self.framebuffer.get_size()}")
-        self._logger.info(f"Framebuffer color depth: {self.framebuffer.get_color_depth()}")
-
-        self.canvas = frame.Frame(self.framebuffer.get_size())
+        self.create_framebuffer()
+        self.create_canvas()
 
         self.render_loop = RenderLoop(self)
         self.render_loop.start()
-    
+
+    def create_framebuffer(self):
+        path = self._settings.get(["framebuffer_path"])
+
+        if path:
+            self.framebuffer = Framebuffer(path)
+            self._logger.info(f"Framebuffer size: {self.framebuffer.get_size()}")
+            self._logger.info(f"Framebuffer color depth: {self.framebuffer.get_color_depth()}")
+        else:
+            self._logger.info("Framebuffer path not set")
+
+    def create_canvas(self):
+        size = (128, 128)
+
+        if self.framebuffer:
+            size = self.framebuffer.get_size()
+
+        self.canvas = frame.Frame(size)
+
     ##~~ ShutdownPlugin mixin
 
     def on_shutdown(self):
         self.render_loop.stop()
-        self.framebuffer.close()
+
+        if self.framebuffer:
+            self.framebuffer.close()
 
     ##~~ SettingsPlugin mixin
 
     def get_settings_defaults(self):
         return {
-            # put your plugin's default settings here
+            "framebuffer_path": "",
         }
 
     ##~~ AssetPlugin mixin
@@ -87,10 +105,10 @@ class ExternaldisplayPlugin(
 
     def is_blueprint_csrf_protected(self):
         return True
-    
+
     def is_blueprint_protected(self):
         return False
-    
+
     @octoprint.plugin.BlueprintPlugin.route("/frame", methods=["GET"])
     def api_frame(self):
         if not self.canvas:
@@ -136,11 +154,11 @@ class ExternaldisplayPlugin(
 # can be overwritten via __plugin_xyz__ control properties. See the documentation for that.
 __plugin_name__ = "External Display"
 
-
 # Set the Python version your plugin is compatible with below. Recommended is Python 3 only for all new plugins.
 # OctoPrint 1.4.0 - 1.7.x run under both Python 3 and the end-of-life Python 2.
 # OctoPrint 1.8.0 onwards only supports Python 3.
 __plugin_pythoncompat__ = ">=3,<4"  # Only Python 3
+
 
 def __plugin_load__():
     global __plugin_implementation__
