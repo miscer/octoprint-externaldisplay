@@ -1,0 +1,8 @@
+BUTTON_CENTER = "center"
+BUTTON_LEFT = "left"
+BUTTON_RIGHT = "right"
+BUTTON_UP = "up"
+BUTTON_DOWN = "down"
+BUTTON_A = "a"
+BUTTON_B = "b"
+BUTTON_C = "c"

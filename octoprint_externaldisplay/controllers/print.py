@@ -1,5 +1,6 @@
 from octoprint.printer import PrinterInterface
 from octoprint_externaldisplay.canvas import Canvas
+from octoprint_externaldisplay import events, controls
 from octoprint_externaldisplay.views import print
 
 
@@ -10,6 +11,22 @@ class PrintController:
 
     def draw(self):
         self.view.draw(self.get_view_data())
+
+    def handle(self, event: events.Event):
+        if isinstance(event, events.ButtonPressEvent):
+            self.handle_button_press(event)
+
+    def handle_button_press(self, event: events.ButtonPressEvent):
+        if event.button == controls.BUTTON_A:
+            if self.printer.is_ready():
+                self.printer.start_print()
+            elif self.printer.is_printing():
+                self.printer.cancel_print()
+        if event.button == controls.BUTTON_B:
+            if self.printer.is_paused():
+                self.printer.resume_print()
+            else:
+                self.printer.pause_print()
 
     def get_view_data(self):
         temperatures = self.printer.get_current_temperatures()
