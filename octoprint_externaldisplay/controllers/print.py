@@ -2,15 +2,18 @@ from octoprint.printer import PrinterInterface
 from octoprint_externaldisplay.canvas import Canvas
 from octoprint_externaldisplay import events, controls
 from octoprint_externaldisplay.views import print
+from octoprint_externaldisplay.views.controls import ControlsView
 
 
 class PrintController:
     def __init__(self, printer: PrinterInterface, canvas: Canvas):
         self.printer = printer
-        self.view = print.PrintView(canvas)
+        self.print_view = print.PrintView(canvas, (0, 0), (canvas.image.width - 64, canvas.image.height))
+        self.controls_view = ControlsView(canvas, action_bar_size=64)
 
     def draw(self):
-        self.view.draw(self.get_view_data())
+        self.print_view.draw(self.get_view_data())
+        self.controls_view.draw(self.get_actions())
 
     def handle(self, event: events.Event):
         if isinstance(event, events.ButtonPressEvent):
@@ -52,3 +55,26 @@ class PrintController:
             time_elapsed=current_data["progress"]["printTime"],
             time_remaining=current_data["progress"]["printTimeLeft"],
         )
+
+    def get_actions(self):
+        actions = []
+
+        if self.printer.is_paused():
+            actions += [ControlsView.Action(color=ControlsView.COLOR_DANGER, label="Restart")]
+        elif self.printer.is_printing():
+            actions += [ControlsView.Action(color=ControlsView.COLOR_DANGER, label="Cancel")]
+        elif self.printer.is_ready():
+            actions += [ControlsView.Action(color=ControlsView.COLOR_DEFAULT, label="Start")]
+        else:
+            actions += [ControlsView.Action(color=ControlsView.COLOR_DISABLED, label="Start")]
+
+        if self.printer.is_paused():
+            actions += [ControlsView.Action(color=ControlsView.COLOR_DEFAULT, label="Resume")]
+        elif self.printer.is_printing():
+            actions += [ControlsView.Action(color=ControlsView.COLOR_DEFAULT, label="Pause")]
+        else:
+            actions += [ControlsView.Action(color=ControlsView.COLOR_DISABLED, label="Pause")]
+
+        actions += [ControlsView.Action(color=ControlsView.COLOR_DISABLED, label="Menu")]
+
+        return actions

@@ -14,8 +14,10 @@ PrintViewData = namedtuple("FrameData", [
 
 
 class PrintView:
-    def __init__(self, canvas: Canvas):
+    def __init__(self, canvas: Canvas, position: tuple[int, int], size: tuple[int, int]):
         self.canvas = canvas
+        self.x, self.y = position
+        self.width, self.height = size
 
     def draw(self, data: PrintViewData):
         self.clear()
@@ -24,16 +26,17 @@ class PrintView:
         self.draw_time(data)
 
     def clear(self):
-        self.canvas.draw.rectangle(((0, 0), self.canvas.image.size), fill="black")
+        self.canvas.draw.rectangle(((self.x, self.y), (self.x + self.width, self.y + self.height)), fill="black")
 
     def draw_temperatures(self, data: PrintViewData):
         offset = 4 * self.canvas.scale
 
         if data.bed is not None:
-            self.draw_temperature(data.bed, (offset, self.canvas.image.height - offset), "ld")
+            position = (self.x + offset, self.y + self.height - offset)
+            self.draw_temperature(data.bed, position, "ld")
         if data.extruder is not None:
-            self.draw_temperature(data.extruder, (self.canvas.image.width - offset, self.canvas.image.height - offset),
-                                  "rd")
+            position = (self.x + self.width - offset, self.y + self.height - offset)
+            self.draw_temperature(data.extruder, position, "rd")
 
     def draw_temperature(self, temperature: Temperature, position: tuple[int, int], anchor: str):
         text = f"{temperature.current:.0f}°C"
@@ -52,11 +55,11 @@ class PrintView:
 
     def draw_progress(self, data: PrintViewData):
         bottom_offset = 16 * self.canvas.scale
-        diameter = self.canvas.image.width - 32 * self.canvas.scale
+        diameter = self.width - 32 * self.canvas.scale
         line_width = 8 * self.canvas.scale
 
-        x = (self.canvas.image.width - diameter) / 2
-        y = (self.canvas.image.height - diameter - bottom_offset) / 2
+        x = self.x + (self.width - diameter) / 2
+        y = self.y + (self.height - diameter - bottom_offset) / 2
         bounding_box = [(x, y), (x + diameter, y + diameter)]
 
         self.canvas.draw.arc(bounding_box, 0, 360, fill="gray", width=line_width)
@@ -67,8 +70,8 @@ class PrintView:
 
     def draw_time(self, data: PrintViewData):
         bottom_offset = 16 * self.canvas.scale
-        position = (self.canvas.image.width / 2, (self.canvas.image.height - bottom_offset) / 2)
-        font = get_font("iosevka_regular", 24 * self.canvas.scale)
+        position = (self.x + (self.width / 2), self.y + (self.height - bottom_offset) / 2)
+        font = get_font("iosevka_regular", 20 * self.canvas.scale)
 
         if data.time_remaining:
             text = self.format_time(data.time_remaining)
