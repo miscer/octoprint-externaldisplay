@@ -1,6 +1,7 @@
 from collections import namedtuple
 from octoprint_externaldisplay.fonts import get_font
 from octoprint_externaldisplay.canvas import Canvas
+from octoprint_externaldisplay.theme import default_theme
 
 Temperature = namedtuple("Temperature", ["current", "target"])
 
@@ -26,16 +27,19 @@ class PrintView:
         self.draw_time(data)
 
     def clear(self):
-        self.canvas.draw.rectangle(((self.x, self.y), (self.x + self.width, self.y + self.height)), fill="black")
+        self.canvas.draw.rectangle(
+            ((self.x, self.y), (self.x + self.width, self.y + self.height)),
+            fill=default_theme.backgrounds[0])
 
     def draw_temperatures(self, data: PrintViewData):
-        offset = 4 * self.canvas.scale
+        side_offset = 8 * self.canvas.scale
+        bottom_offset = 4 * self.canvas.scale
 
         if data.bed is not None:
-            position = (self.x + offset, self.y + self.height - offset)
+            position = (self.x + side_offset, self.y + self.height - bottom_offset)
             self.draw_temperature(data.bed, position, "ld")
         if data.extruder is not None:
-            position = (self.x + self.width - offset, self.y + self.height - offset)
+            position = (self.x + self.width - side_offset, self.y + self.height - bottom_offset)
             self.draw_temperature(data.extruder, position, "rd")
 
     def draw_temperature(self, temperature: Temperature, position: tuple[int, int], anchor: str):
@@ -43,13 +47,13 @@ class PrintView:
         font = get_font("iosevka_bold", 16 * self.canvas.scale)
 
         if temperature.target == 0:
-            color = "gray"
+            color = default_theme.foreground
         elif temperature.target - temperature.current > 1:
-            color = "red"
+            color = default_theme.hot
         elif temperature.target - temperature.current < -1:
-            color = "blue"
+            color = default_theme.cold
         else:
-            color = "white"
+            color = default_theme.accent
 
         self.canvas.draw.text(position, text, fill=color, font=font, anchor=anchor)
 
@@ -62,11 +66,11 @@ class PrintView:
         y = self.y + (self.height - diameter - bottom_offset) / 2
         bounding_box = [(x, y), (x + diameter, y + diameter)]
 
-        self.canvas.draw.arc(bounding_box, 0, 360, fill="gray", width=line_width)
+        self.canvas.draw.arc(bounding_box, 0, 360, fill=default_theme.foreground, width=line_width)
 
         if data.progress:
             angle = (270 + data.progress / 100 * 360) % 360
-            self.canvas.draw.arc(bounding_box, 270, angle, fill="white", width=line_width)
+            self.canvas.draw.arc(bounding_box, 270, angle, fill=default_theme.accent, width=line_width)
 
     def draw_time(self, data: PrintViewData):
         bottom_offset = 16 * self.canvas.scale
@@ -75,10 +79,10 @@ class PrintView:
 
         if data.time_remaining:
             text = self.format_time(data.time_remaining)
-            self.canvas.draw.text(position, text, fill="white", font=font, anchor="mm")
+            self.canvas.draw.text(position, text, fill=default_theme.accent, font=font, anchor="mm")
         elif data.time_elapsed:
             text = self.format_time(data.time_elapsed)
-            self.canvas.draw.text(position, text, fill="gray", font=font, anchor="mm")
+            self.canvas.draw.text(position, text, fill=default_theme.foreground, font=font, anchor="mm")
 
     def format_time(self, seconds: int):
         minutes, seconds = divmod(seconds, 60)
