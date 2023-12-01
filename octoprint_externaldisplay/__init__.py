@@ -1,7 +1,7 @@
 # coding=utf-8
 from __future__ import absolute_import
 import octoprint.plugin
-from octoprint_externaldisplay import canvas
+from octoprint_externaldisplay import canvas, events
 from octoprint_externaldisplay.framebuffer import Framebuffer
 from octoprint_externaldisplay.loop import RenderLoop
 from octoprint_externaldisplay.controllers import print
@@ -105,6 +105,16 @@ class ExternaldisplayPlugin(
 
         # Return the image in the response
         return flask.send_file(image_io, mimetype='image/png')
+
+    @octoprint.plugin.BlueprintPlugin.route("/buttons/press", methods=["POST"])
+    def api_button_press(self):
+        if not self.controller:
+            return flask.abort(503)
+
+        button = flask.request.form["button"]
+        self.controller.handle(events.ButtonPressEvent(button))
+
+        return flask.make_response("", 200)
 
     ##~~ Softwareupdate hook
 

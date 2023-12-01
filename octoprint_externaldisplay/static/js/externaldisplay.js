@@ -4,7 +4,7 @@
  * Author: Michal Miskernik
  * License: AGPLv3
  */
-$(function() {
+$(function () {
     class ExternalDisplayViewModel {
         constructor() {
             this.imageUrl = ko.observable(getFrameImageHref());
@@ -23,6 +23,28 @@ $(function() {
                 this.updateInterval = null;
             }
         }
+
+        handleButtonClick(button) {
+            $.ajax({
+                type: "POST",
+                url: EXTERNAL_DISPLAY.api.buttons.press,
+                data: {button: button.name},
+            });
+        }
+
+        dPadButtons = [
+            {name: "up", icon: "fa-arrow-up"},
+            {name: "left", icon: "fa-arrow-left"},
+            {name: "right", icon: "fa-arrow-right"},
+            {name: "down", icon: "fa-arrow-down"},
+            {name: "center", icon: "fa-circle"},
+        ];
+
+        actionButtons = [
+            {name: "a", icon: "fa-a"},
+            {name: "b", icon: "fa-b"},
+            {name: "c", icon: "fa-c"},
+        ];
     }
 
     function getFrameImageHref() {

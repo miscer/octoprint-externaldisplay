@@ -1,5 +1,21 @@
-<div class="row-fluid">
-  <div class="span4 offset4 text-center">
-    <img data-bind="attr: { src: imageUrl }">
-  </div>
+<div class="external-display-settings">
+    <div class="row-fluid">
+        <div class="span3 offset1">
+            <div class="d-pad" data-bind="foreach: dPadButtons">
+                <button class="btn" data-bind="class: 'd-pad-' + name, click: $parent.handleButtonClick">
+                    <i class="fas" data-bind="class: icon"></i>
+                </button>
+            </div>
+        </div>
+        <div class="span4 text-center">
+            <img data-bind="attr: { src: imageUrl }">
+        </div>
+        <div class="span4">
+            <div data-bind="foreach: actionButtons">
+                <button class="btn" data-bind="click: $parent.handleButtonClick">
+                    <i class="fas" data-bind="class: icon"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>

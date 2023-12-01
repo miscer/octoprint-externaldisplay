@@ -1,7 +1,10 @@
 <script>
-const EXTERNAL_DISPLAY = {
-  api: {
-    frame: "{{ url_for('plugin.externaldisplay.api_frame') }}",
-  },
-};
+    const EXTERNAL_DISPLAY = {
+        api: {
+            frame: "{{ url_for('plugin.externaldisplay.api_frame') }}",
+            buttons: {
+                press: "{{ url_for('plugin.externaldisplay.api_button_press') }}",
+            }
+        },
+    };
 </script>

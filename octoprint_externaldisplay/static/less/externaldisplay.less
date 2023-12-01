@@ -1,1 +1,33 @@
-// TODO: Put your plugin's LESS here, have it generated to ../css.
+.external-display-settings {
+  .d-pad {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    grid-gap: 10px;
+
+    grid-template-areas:
+        ".          d-pad-up     ."
+        "d-pad-left d-pad-center d-pad-right"
+        ".          d-pad-down   .";
+  }
+
+  .d-pad-up {
+    grid-area: d-pad-up;
+  }
+
+  .d-pad-down {
+    grid-area: d-pad-down;
+  }
+
+  .d-pad-left {
+    grid-area: d-pad-left;
+  }
+
+  .d-pad-right {
+    grid-area: d-pad-right;
+  }
+
+  .d-pad-center {
+    grid-area: d-pad-center;
+  }
+}
