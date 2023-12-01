@@ -8,8 +8,10 @@ from octoprint_externaldisplay.views.controls import ControlsView
 class PrintController:
     def __init__(self, printer: PrinterInterface, canvas: Canvas):
         self.printer = printer
-        self.print_view = print.PrintView(canvas, (0, 0), (canvas.image.width - 64, canvas.image.height))
-        self.controls_view = ControlsView(canvas, action_bar_size=64)
+
+        action_bar_size = 16 * canvas.scale
+        self.print_view = print.PrintView(canvas, (0, 0), (canvas.image.width - action_bar_size, canvas.image.height))
+        self.controls_view = ControlsView(canvas, action_bar_size=action_bar_size)
 
     def draw(self):
         self.print_view.draw(self.get_view_data())
