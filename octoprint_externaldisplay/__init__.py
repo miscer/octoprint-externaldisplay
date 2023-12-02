@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import octoprint.plugin
 from octoprint_externaldisplay import canvas, events
 from octoprint_externaldisplay.framebuffer import Framebuffer
+from octoprint_externaldisplay.gpio import GPIOButtons
 from octoprint_externaldisplay.loop import RenderLoop
 from octoprint_externaldisplay.controllers import print
 import flask
@@ -20,6 +21,8 @@ class ExternaldisplayPlugin(
     canvas = None
     controller = None
     framebuffer = None
+    render_loop = None
+    gpio_buttons = None
 
     def draw_frame(self):
         self.controller.draw()
@@ -27,6 +30,9 @@ class ExternaldisplayPlugin(
         if self.framebuffer:
             image = self.canvas.get_image()
             self.framebuffer.write(image)
+
+    def handle_event(self, event: events.Event):
+        self.controller.handle(event)
 
     ##~~ StartupPlugin mixin
 
@@ -36,8 +42,8 @@ class ExternaldisplayPlugin(
 
         self.controller = print.PrintController(self._printer, self.canvas)
 
-        self.render_loop = RenderLoop(self)
-        self.render_loop.start()
+        self.create_gpio()
+        self.create_render_loop()
 
     def create_framebuffer(self):
         active = self._settings.get_boolean(["enable_framebuffer"])
@@ -58,6 +64,18 @@ class ExternaldisplayPlugin(
 
         self.canvas = canvas.Canvas(size)
 
+    def create_gpio(self):
+        keymap = self._settings.get(["gpio_keymap"])
+
+        if keymap:
+            self.gpio_buttons = GPIOButtons(keymap, self.handle_event)
+        else:
+            self._logger.info("GPIO buttons not active")
+
+    def create_render_loop(self):
+        self.render_loop = RenderLoop(self)
+        self.render_loop.start()
+
     ##~~ ShutdownPlugin mixin
 
     def on_shutdown(self):
@@ -72,6 +90,7 @@ class ExternaldisplayPlugin(
         return {
             "enable_framebuffer": False,
             "framebuffer_path": "",
+            "gpio_keymap": "",
         }
 
     ##~~ AssetPlugin mixin
@@ -112,7 +131,7 @@ class ExternaldisplayPlugin(
             return flask.abort(503)
 
         button = flask.request.form["button"]
-        self.controller.handle(events.ButtonPressEvent(button))
+        self.handle_event(events.ButtonPressEvent(button))
 
         return flask.make_response("", 200)
 
