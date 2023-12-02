@@ -69,7 +69,7 @@ class ExternaldisplayPlugin(
         keymap = self._settings.get(["gpio_keymap"])
 
         if keymap:
-            self.gpio_buttons = GPIOButtons(json.loads(keymap), self.handle_event)
+            self.gpio_buttons = GPIOButtons(json.loads(keymap), self.handle_event, self._logger)
         else:
             self._logger.info("GPIO buttons not active")
 
