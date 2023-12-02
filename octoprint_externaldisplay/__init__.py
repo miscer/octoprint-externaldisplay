@@ -7,6 +7,7 @@ from octoprint_externaldisplay.gpio import GPIOButtons
 from octoprint_externaldisplay.loop import RenderLoop
 from octoprint_externaldisplay.controllers import print
 import flask
+import json
 import io
 
 
@@ -68,7 +69,7 @@ class ExternaldisplayPlugin(
         keymap = self._settings.get(["gpio_keymap"])
 
         if keymap:
-            self.gpio_buttons = GPIOButtons(keymap, self.handle_event)
+            self.gpio_buttons = GPIOButtons(json.loads(keymap), self.handle_event)
         else:
             self._logger.info("GPIO buttons not active")
 
@@ -134,6 +135,15 @@ class ExternaldisplayPlugin(
         self.handle_event(events.ButtonPressEvent(button))
 
         return flask.make_response("", 200)
+
+    ##~~ TemplatePlugin mixin
+
+    def get_template_configs(self):
+        return [
+            dict(type="tab", name="Display"),
+            dict(type="settings", custom_bindings=False),
+            dict(type="generic"),
+        ]
 
     ##~~ Softwareupdate hook
 
