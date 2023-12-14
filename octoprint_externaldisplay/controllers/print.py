@@ -1,15 +1,17 @@
+import logging
 from octoprint.printer import PrinterInterface
 from octoprint_externaldisplay.canvas import Canvas
-from octoprint_externaldisplay import events, controls
+from octoprint_externaldisplay import events, controls, utils
 from octoprint_externaldisplay.views import print
 from octoprint_externaldisplay.views.controls import ControlsView
 from octoprint_externaldisplay.controllers.manager import Manager
 
 
 class PrintController:
-    def __init__(self, printer: PrinterInterface, canvas: Canvas, manager: Manager):
+    def __init__(self, printer: PrinterInterface, canvas: Canvas, manager: Manager, logger: logging.Logger):
         self.printer = printer
         self.manager = manager
+        self.logger = logger
 
         action_bar_size = 16 * canvas.scale
         self.print_view = print.PrintView(canvas, (0, 0), (canvas.image.width - action_bar_size, canvas.image.height))
@@ -22,6 +24,8 @@ class PrintController:
     def handle(self, event: events.Event):
         if isinstance(event, events.ButtonPressEvent):
             self.handle_button_press(event)
+        if isinstance(event, events.OctoPrintEvent):
+            self.handle_octoprint_event(event)
 
     def handle_button_press(self, event: events.ButtonPressEvent):
         if event.button == controls.BUTTON_A:
@@ -34,6 +38,14 @@ class PrintController:
                 self.printer.resume_print()
             else:
                 self.printer.pause_print()
+
+    def handle_octoprint_event(self, event: events.OctoPrintEvent):
+        if event.name == "PrinterStateChanged":
+            self.handle_printer_state_changed(event.payload['state_id'])
+
+    def handle_printer_state_changed(self, state: str):
+        if state in utils.sleep_printer_states:
+            self.manager.navigate("sleep")
 
     def get_view_data(self):
         temperatures = self.printer.get_current_temperatures()
@@ -82,3 +94,4 @@ class PrintController:
         actions += [ControlsView.Action(color=ControlsView.COLOR_DISABLED, label="Menu")]
 
         return actions
+

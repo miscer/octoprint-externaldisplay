@@ -18,6 +18,7 @@ class ExternaldisplayPlugin(
     octoprint.plugin.BlueprintPlugin,
     octoprint.plugin.StartupPlugin,
     octoprint.plugin.ShutdownPlugin,
+    octoprint.plugin.EventHandlerPlugin,
 ):
     canvas = None
     controller = None
@@ -26,14 +27,16 @@ class ExternaldisplayPlugin(
     gpio_buttons = None
 
     def draw_frame(self):
-        self.controller.draw()
+        if self.controller:
+            self.controller.draw()
 
         if self.framebuffer:
             image = self.canvas.get_image()
             self.framebuffer.write(image)
 
     def handle_event(self, event: events.Event):
-        self.controller.handle(event)
+        if self.controller:
+            self.controller.handle(event)
 
     ##~~ StartupPlugin mixin
 
@@ -41,7 +44,7 @@ class ExternaldisplayPlugin(
         self.create_framebuffer()
         self.create_canvas()
 
-        self.controller = main.MainController(self._printer, self.canvas)
+        self.controller = main.MainController(self._printer, self.canvas, self._logger)
 
         self.create_gpio()
         self.create_render_loop()
@@ -84,6 +87,9 @@ class ExternaldisplayPlugin(
 
         if self.framebuffer:
             self.framebuffer.close()
+
+    def on_event(self, event, payload):
+        self.handle_event(events.OctoPrintEvent(event, payload))
 
     ##~~ SettingsPlugin mixin
 
