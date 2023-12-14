@@ -3,11 +3,13 @@ from octoprint_externaldisplay.canvas import Canvas
 from octoprint_externaldisplay import events, controls
 from octoprint_externaldisplay.views import print
 from octoprint_externaldisplay.views.controls import ControlsView
+from octoprint_externaldisplay.controllers.manager import Manager
 
 
 class PrintController:
-    def __init__(self, printer: PrinterInterface, canvas: Canvas):
+    def __init__(self, printer: PrinterInterface, canvas: Canvas, manager: Manager):
         self.printer = printer
+        self.manager = manager
 
         action_bar_size = 16 * canvas.scale
         self.print_view = print.PrintView(canvas, (0, 0), (canvas.image.width - action_bar_size, canvas.image.height))

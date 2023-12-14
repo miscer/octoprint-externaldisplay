@@ -1,6 +1,7 @@
 from octoprint.printer import PrinterInterface
 from octoprint_externaldisplay.canvas import Canvas
 from octoprint_externaldisplay.controllers.print import PrintController
+from octoprint_externaldisplay.controllers.manager import Manager
 from octoprint_externaldisplay import events
 
 
@@ -9,11 +10,12 @@ class MainController:
         self.printer = printer
         self.canvas = canvas
 
-        self.print_controller = PrintController(self.printer, self.canvas)
-        self.current = self.print_controller
+        self.manager = Manager()
+        self.manager.register("print", PrintController(self.printer, self.canvas, self.manager))
+        self.manager.navigate("print")
 
     def draw(self):
-        self.current.draw()
+        self.manager.current.draw()
 
     def handle(self, event: events.Event):
-        self.current.handle(event)
+        self.manager.current.handle(event)
