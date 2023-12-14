@@ -5,7 +5,7 @@ from octoprint_externaldisplay import canvas, events
 from octoprint_externaldisplay.framebuffer import Framebuffer
 from octoprint_externaldisplay.gpio import GPIOButtons
 from octoprint_externaldisplay.loop import RenderLoop
-from octoprint_externaldisplay.controllers import print
+from octoprint_externaldisplay.controllers import main
 import flask
 import json
 import io
@@ -41,7 +41,7 @@ class ExternaldisplayPlugin(
         self.create_framebuffer()
         self.create_canvas()
 
-        self.controller = print.PrintController(self._printer, self.canvas)
+        self.controller = main.MainController(self._printer, self.canvas)
 
         self.create_gpio()
         self.create_render_loop()
