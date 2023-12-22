@@ -22,6 +22,22 @@
         </div>
     </div>
     <div class="control-group">
+        <div class="controls">
+            <label class="checkbox">
+                <input type="checkbox"
+                       data-bind="checked: settings.plugins.externaldisplay.enable_backlight">
+                Enable backlight control
+            </label>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">{{ _('Backlight GPIO number') }}</label>
+        <div class="controls">
+            <input type="number" class="input-medium"
+                   data-bind="value: settings.plugins.externaldisplay.backlight_gpio">
+        </div>
+    </div>
+    <div class="control-group">
         <label class="control-label">{{ _('GPIO keymap') }}</label>
         <div class="controls">
             <textarea class="input-block-level"

@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 import octoprint.plugin
 from octoprint_externaldisplay import canvas, events
+from octoprint_externaldisplay.backlight import GPIOBacklight, DummyBacklight
 from octoprint_externaldisplay.framebuffer import Framebuffer
 from octoprint_externaldisplay.gpio import GPIOButtons
 from octoprint_externaldisplay.loop import RenderLoop
@@ -25,6 +26,7 @@ class ExternaldisplayPlugin(
     framebuffer = None
     render_loop = None
     gpio_buttons = None
+    backlight = None
 
     def draw_frame(self):
         if self.controller:
@@ -42,12 +44,23 @@ class ExternaldisplayPlugin(
 
     def on_after_startup(self):
         self.create_framebuffer()
+        self.create_backlight()
         self.create_canvas()
 
-        self.controller = main.MainController(self._printer, self.canvas, self._logger)
+        self.controller = main.MainController(self._printer, self.canvas, self.backlight, self._logger)
 
-        self.create_gpio()
+        self.create_gpio_buttons()
         self.create_render_loop()
+
+    def create_backlight(self):
+        active = self._settings.get_boolean(["enable_backlight"])
+        pin = self._settings.get_int(["backlight_gpio"])
+
+        if active and pin:
+            self.backlight = GPIOBacklight(pin, self._logger)
+        else:
+            self.backlight = DummyBacklight(self._logger)
+
 
     def create_framebuffer(self):
         active = self._settings.get_boolean(["enable_framebuffer"])
@@ -68,7 +81,7 @@ class ExternaldisplayPlugin(
 
         self.canvas = canvas.Canvas(size)
 
-    def create_gpio(self):
+    def create_gpio_buttons(self):
         keymap = self._settings.get(["gpio_keymap"])
 
         if keymap:
@@ -96,7 +109,9 @@ class ExternaldisplayPlugin(
     def get_settings_defaults(self):
         return {
             "enable_framebuffer": False,
+            "enable_backlight": False,
             "framebuffer_path": "",
+            "backlight_gpio": 0,
             "gpio_keymap": "",
         }
 
