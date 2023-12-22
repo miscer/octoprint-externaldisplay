@@ -4,7 +4,7 @@ import threading
 class RenderLoop(threading.Thread):
     daemon = True
 
-    def __init__(self, plugin, refresh_interval=1):
+    def __init__(self, plugin, refresh_interval=0.2):
         super().__init__()
 
         self.plugin = plugin
